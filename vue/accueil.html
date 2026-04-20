@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Accueil</title>
+    </head>
+    <body>
+        <h1>Bienvenue sur l'application de prise de note</h1>
+        <p>
+            Cette application vous permettra de prendre des notes rapidement et
+            facilement.
+        </p>
+
+        <h2>Créer une nouvelle note</h2>
+        <form id="note-form">
+            <label for="note-title">Titre :</label>
+            <input type="text" id="note-title" name="note-title" required />
+            <br />
+            <label for="note-content">Contenu :</label>
+            <textarea id="note-content" name="note-content" required></textarea>
+            <br />
+            <button type="submit">Créer la note</button>
+        </form>
+
+        <h2>Liste des notes</h2>
+        <ul id="notes-list"></ul>
+
+        <script src="script/notes-ui.js"></script>
+    </body>
+</html>
