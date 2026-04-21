@@ -1,6 +1,6 @@
 # Agents du projet - Prise de note (Electron)
 
-Ce dossier contient 3 agents specialises pour t aider a construire l application.
+Ce dossier contient 4 agents specialises pour t aider a construire l application.
 
 Stack cible:
 - Electron pour le shell desktop
@@ -28,10 +28,18 @@ Stack cible:
   - "Decoupe cette fonctionnalite en user stories + tickets techniques."
   - "Priorise la roadmap MVP en P0/P1/P2."
 
+## 4) Assistant Commentateur Notes App
+- Fichier: `assistant-commentateur.agent.md`
+- A utiliser quand: tu veux rendre un code existant comprehensible sans toucher a sa logique (passe apres le codeur).
+- Exemple de demande:
+  - "Commente les fichiers modifies dans le dernier diff."
+  - "Ajoute des headers et des commentaires de contrainte dans main.js et preload.js."
+
 ## Workflow recommande
 1. Product Owner: clarifier le besoin, prioriser, definir acceptance criteria.
 2. Codeur: implementer les tickets priorises.
-3. Qualite: auditer les risques et proposer les corrections finales.
+3. Commentateur: ajouter les commentaires "pourquoi" sur le code livre.
+4. Qualite: auditer les risques et proposer les corrections finales.
 
 ## Conseils pratiques
 - Garde des demandes courtes et concretes.

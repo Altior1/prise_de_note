@@ -1,0 +1,127 @@
+/* Panneau éditeur à droite. Pleine hauteur, pleine largeur restante.
+   Look Obsidian : pas de cadres, pas de bordures sur les champs,
+   titre grand, contenu pleine hauteur qui scrolle. */
+
+.editor-panel {
+    flex: 1;
+    min-width: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    background: var(--color-bg);
+}
+
+#detail-placeholder {
+    margin: auto;
+    color: var(--color-text-muted);
+    font-style: italic;
+    text-align: center;
+}
+
+#note-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    flex: 1;
+    min-height: 0;
+    position: relative; /* Ancrage du bouton delete en position absolute. */
+}
+
+.detail-delete-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-delete-button:hover {
+    color: var(--color-danger);
+    background: var(--color-danger-soft);
+    border-color: var(--color-danger);
+}
+
+.detail-delete-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+#note-detail[hidden] {
+    display: none;
+}
+
+.detail-title-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--spacing-xs) 0;
+    font: inherit;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text);
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.detail-title-input:focus {
+    border-bottom: 1px solid var(--color-accent);
+}
+
+.detail-content-input {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    font: inherit;
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    line-height: 1.6;
+}
+
+.save-indicator {
+    min-height: 1.1em;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.save-indicator.is-saving {
+    color: var(--color-warning);
+}
+
+.save-indicator.is-saved {
+    color: var(--color-success);
+}
+
+.detail-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+.detail-actions button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font: inherit;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+}

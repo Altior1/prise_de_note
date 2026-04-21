@@ -62,9 +62,84 @@ describe("notes-storage", () => {
     await storage.create({ title: "Un", content: "1" });
     await storage.create({ title: "Deux", content: "2" });
 
-    const notes = await storage.list();
+    const { notes, invalidFiles } = await storage.list();
     expect(notes).toHaveLength(2);
     expect(notes.map((n) => n.title).sort()).toEqual(["Deux", "Un"]);
+    expect(invalidFiles).toEqual([]);
+  });
+
+  test("list renvoie un tableau vide invalidFiles quand tout va bien", async () => {
+    const storage = createStorage(tmpDir);
+    await storage.create({ title: "Seule", content: "x" });
+
+    const { notes, invalidFiles } = await storage.list();
+    expect(notes).toHaveLength(1);
+    expect(invalidFiles).toEqual([]);
+  });
+
+  test("list skippe un fichier avec YAML cassé", async () => {
+    const storage = createStorage(tmpDir);
+    await storage.create({ title: "Un", content: "1" });
+    await storage.create({ title: "Deux", content: "2" });
+    const brokenFilename = "casse-aaaaaaaaaa.md";
+    await fs.writeFile(
+      path.join(tmpDir, brokenFilename),
+      "---\nid: [unclosed\ntitle: cassé\n---\nbody",
+      "utf-8",
+    );
+
+    const { notes, invalidFiles } = await storage.list();
+    expect(notes).toHaveLength(2);
+    expect(notes.map((n) => n.title).sort()).toEqual(["Deux", "Un"]);
+    expect(invalidFiles).toHaveLength(1);
+    expect(invalidFiles[0].filename).toBe(brokenFilename);
+    expect(typeof invalidFiles[0].error).toBe("string");
+    expect(invalidFiles[0].error.length).toBeGreaterThan(0);
+  });
+
+  test("list ne throw pas si tous les fichiers sont cassés", async () => {
+    const storage = createStorage(tmpDir);
+    await fs.writeFile(
+      path.join(tmpDir, "broken-1.md"),
+      "---\nid: [bad\n---\n",
+      "utf-8",
+    );
+    await fs.writeFile(
+      path.join(tmpDir, "broken-2.md"),
+      "---\n: pas: de: clé\n---\n",
+      "utf-8",
+    );
+
+    const { notes, invalidFiles } = await storage.list();
+    expect(notes).toEqual([]);
+    expect(invalidFiles).toHaveLength(2);
+    expect(invalidFiles.map((e) => e.filename).sort()).toEqual([
+      "broken-1.md",
+      "broken-2.md",
+    ]);
+  });
+
+  test("findFilenameById ignore les fichiers corrompus dans le fallback", async () => {
+    const storage = createStorage(tmpDir);
+    const created = await storage.create({ title: "Valide", content: "ok" });
+    // On casse le fast-path en renommant vers un nom qui ne se termine pas par
+    // `-<id>.md`, pour forcer le fallback qui lit le frontmatter.
+    const renamed = "mysterious.md";
+    await fs.rename(
+      path.join(tmpDir, created.filename),
+      path.join(tmpDir, renamed),
+    );
+    await fs.writeFile(
+      path.join(tmpDir, "broken.md"),
+      "---\nid: [bad\n---\n",
+      "utf-8",
+    );
+
+    const found = await storage.read(created.id);
+    expect(found).not.toBeNull();
+    expect(found.id).toBe(created.id);
+    expect(found.title).toBe("Valide");
+    expect(await storage.read("inconnu")).toBeNull();
   });
 
   test("update modifie les champs et rafraîchit updatedAt", async () => {

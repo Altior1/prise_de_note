@@ -1,16 +1,42 @@
 # Prise de Note
 
-Application desktop de prise de notes construite avec **Electron**. CRUD simple, stockage local en fichiers Markdown (avec frontmatter YAML), sans dépendance cloud.
+Application desktop de prise de notes construite avec **Electron**. CRUD local, stockage en fichiers Markdown (frontmatter YAML), dossier de notes **choisi par l'utilisateur** (compatible synchronisation OneDrive / Dropbox / iCloud), zéro backend.
 
-> ⚠️ Projet en cours de Sprint 1 (MVP). Plusieurs tickets P0 du backlog ne sont pas encore implémentés côté UI (recherche, édition, suppression avec confirmation, autosave…). Voir [`docs/sprint-1.md`](docs/sprint-1.md) et [`docs/sprint-1-kanban.md`](docs/sprint-1-kanban.md).
+Interface inspirée d'Obsidian : sidebar de navigation à gauche, éditeur pleine hauteur à droite, création instantanée via un bouton « + ».
 
-## Fonctionnalités
+## État du projet
 
-- Création d'une note (titre + contenu) depuis l'UI
-- Listing des notes existantes avec date de dernière modification
-- API IPC complète côté main : `list`, `get`, `create`, `update`, `remove`
-- Persistance sur disque : un fichier `.md` par note, avec métadonnées YAML en frontmatter (`id`, `title`, `createdAt`, `updatedAt`)
-- Écriture atomique (fichier temporaire puis `rename`) pour éviter la corruption
+| Sprint | Contenu | Statut |
+|---|---|---|
+| Sprint 1 | MVP CRUD + persistance + recherche + autosave + gestion d'erreurs | Livré |
+| Sprint 2 | Dossier de notes configurable (onboarding, hot-swap, settings.json) — J1 à J3 | Livré (J4/J5 reportés Sprint 4) |
+| Sprint 3 | Refonte UX/UI Obsidian-like — J1 à J4 | En cours (J5/J6 à faire) |
+| Sprint 4 | Reprise S2-J4 (`.md` externes) + S2-J5 (modale migration) sur la nouvelle UI | À planifier |
+| Sprint 5 (envisagé) | Thème sombre, raccourcis clavier, export/tags | Non démarré |
+
+Backlogs détaillés : [`docs/sprint-1.md`](docs/sprint-1.md), [`docs/sprint-2.md`](docs/sprint-2.md), [`docs/sprint-3.md`](docs/sprint-3.md).
+
+## Fonctionnalités livrées
+
+### Gestion des notes
+- Création instantanée via le bouton « + » en bas de sidebar (note vide, sélectionnée, focus immédiat dans le titre).
+- Édition inline : titre + contenu, autosave debouncée à 700 ms, indicateur « Enregistré à HH:MM ».
+- Suppression avec confirmation.
+- Recherche full-text (titre + contenu), insensible à la casse et aux accents.
+- Liste triée, sélection mise en évidence, états vides (« aucune note » / « aucun résultat »).
+- Tolérance aux fichiers `.md` corrompus dans le dossier de notes (skip sans crash, listés via `invalidFiles`).
+
+### Dossier configurable
+- Onboarding bloquant au 1er lancement : l'utilisateur doit choisir un dossier (pas de défaut silencieux).
+- Paramètres en bas de sidebar : chemin courant affiché + boutons « Changer… » et « Ouvrir ».
+- Hot-swap : changement de dossier sans redémarrage (event `notes-dir-changed` → re-list automatique).
+- `settings.json` versionné (`schemaVersion: 1`) dans `<userData>`.
+- Corruption de `settings.json` détectée → `console.warn` + fallback en mémoire sans écraser le fichier.
+
+### Stockage
+- Un fichier `.md` par note dans le dossier choisi, frontmatter YAML (`id`, `title`, `createdAt`, `updatedAt`).
+- Écriture atomique (`.tmp` + `rename`) pour éviter la corruption en cas de crash.
+- Compatible synchronisation cloud côté OS (OneDrive, Dropbox, iCloud) sans code dédié.
 
 ## Stack technique
 
@@ -18,16 +44,17 @@ Application desktop de prise de notes construite avec **Electron**. CRUD simple,
 |---|---|
 | Runtime desktop | Electron 41 |
 | Langage | JavaScript ESM (`"type": "module"` dans `package.json`) |
-| UI | HTML + JS vanilla (aucun framework) |
+| UI | HTML + CSS + JS vanilla (zéro framework) |
+| Icônes | SVG inline copiés depuis heroicons.com (pas de dépendance npm) |
 | Parsing Markdown + frontmatter | [`gray-matter`](https://www.npmjs.com/package/gray-matter) |
-| Tests | Jest 30 + `jest-environment-jsdom` |
+| Tests | Jest 30 + `jest-environment-jsdom` en mode `--experimental-vm-modules` |
 
-> Le dossier s'appelle `vue/` mais **n'utilise pas Vue.js** — c'est juste le nom choisi pour la couche présentation (renderer Electron).
+Le dossier s'appelle `vue/` mais **n'utilise pas Vue.js** — c'est juste le nom de la couche renderer.
 
 ## Prérequis
 
-- **Node.js ≥ 18** (Electron 41 nécessite au moins Node 18)
-- **npm** (fourni avec Node)
+- **Node.js ≥ 18**
+- **npm**
 
 ## Installation
 
@@ -43,7 +70,7 @@ npm install
 npm start
 ```
 
-Cette commande démarre Electron et ouvre la fenêtre principale sur `vue/accueil.html`.
+Au **premier lancement** (ou si `settings.json` est absent), l'application présente un écran d'onboarding qui force l'utilisateur à choisir un dossier de notes avant de pouvoir utiliser l'interface principale.
 
 ## Lancer les tests
 
@@ -51,61 +78,113 @@ Cette commande démarre Electron et ouvre la fenêtre principale sur `vue/accuei
 npm test
 ```
 
-Les tests utilisent Jest en mode ESM expérimental (`--experimental-vm-modules`). Trois suites :
+5 suites, 67 tests au moment de la rédaction :
 
-- `tests/notes.test.js` — logique métier in-memory (`lib/notes.js`)
-- `tests/notes-storage.test.js` — stockage disque (`lib/notes-storage.js`), utilise un `tmpdir` isolé par test
-- `tests/notes-ui.test.js` — intégration DOM du renderer (jsdom)
+- `tests/notes.test.js` — logique métier historique (mock in-memory, hérité).
+- `tests/notes-storage.test.js` — stockage disque (`lib/notes-storage.js`), `tmpdir` isolé par test.
+- `tests/settings.test.js` — lecture/écriture du `settings.json` (`lib/settings.js`).
+- `tests/boot.test.js` — résolution du storage au boot (`lib/boot.js`).
+- `tests/notes-ui.test.js` — intégration DOM du renderer (jsdom, ~30 tests : liste, détail, recherche, autosave, concurrence, toasts, onboarding, settings).
 
 ## Structure du projet
 
 ```
 .
-├── main.js                     # Process main Electron : fenêtre + enregistrement IPC
-├── preload.js                  # Bridge sécurisé : expose window.notes (contextBridge + ipcRenderer.invoke)
+├── main.js                     # Process main : boot, résolution settings, handlers IPC
+├── preload.js                  # Bridge sécurisé : expose window.notes + window.settings
 ├── lib/
-│   ├── notes.js                # CRUD in-memory (utilisé par les tests unitaires)
-│   └── notes-storage.js        # Stockage Markdown + frontmatter (utilisé en runtime)
+│   ├── notes.js                # CRUD in-memory hérité (conservé pour tests)
+│   ├── notes-storage.js        # Stockage Markdown + frontmatter, factory createStorage(dir)
+│   ├── settings.js             # readSettings / writeSettings (settings.json versionné)
+│   └── boot.js                 # resolveStorage(settings, deps) — fonction pure testable
 ├── vue/
-│   ├── accueil.html            # Page d'accueil (form + liste)
-│   └── script/notes-ui.js      # Logique renderer (consomme window.notes)
-├── tests/                      # Suites Jest
-├── docs/                       # Backlog Sprint 1 + kanban
-└── .github/agents/             # Définitions d'agents custom (codeur, qualité, PO)
+│   ├── accueil.html            # Onboarding + sidebar + panneau éditeur + toasts
+│   ├── style/
+│   │   ├── tokens.css          # Variables CSS : couleurs, espacement, typo, rayons
+│   │   ├── sidebar.css         # Styles sidebar + paramètres compacts
+│   │   ├── detail.css          # Styles panneau éditeur
+│   │   └── accueil.css         # Glue : body, flex app-main, toasts, onboarding
+│   └── script/
+│       ├── icons.js            # window.AppIcons : 8 icônes SVG heroicons + renderIcon
+│       └── notes-ui.js         # Logique renderer (consomme window.notes + window.settings)
+├── tests/
+├── docs/                       # Backlogs sprint-1/2/3 + kanbans
+├── .claude/agents/             # Agents Claude Code custom (codeur, commentateur, qualité, PO)
+└── .github/agents/             # Doc miroir des agents
 ```
 
 ## Architecture
 
 ```
-┌──────────────────┐  ipcRenderer.invoke   ┌──────────────┐   createStorage()   ┌──────────────┐
-│  Renderer        │ ────────────────────▶ │ preload.js   │ ──────────────────▶ │ main.js      │
-│  (vue/script)    │                       │ (contextBridge│                    │ (ipcMain)    │
-│  window.notes.*  │ ◀──────────────────── │  → window.notes)                   │ notes-storage│
-└──────────────────┘                       └──────────────┘                     └──────┬───────┘
-                                                                                       │
-                                                                                       ▼
-                                                                            <userData>/notes/*.md
+┌──────────────────────────┐  ipcRenderer.invoke   ┌─────────────────┐
+│ Renderer (vue/script)    │ ────────────────────▶ │ preload.js      │
+│ window.notes.*           │                       │ contextBridge   │
+│ window.settings.*        │ ◀──────────────────── │ → window.*      │
+│ (écoute notes-dir-changed)│                      └────────┬────────┘
+└──────────────────────────┘                                │
+                                                            ▼
+                          ┌───────────────────────────────────────────────┐
+                          │ main.js                                        │
+                          │ ┌───────────────────────────────────────────┐ │
+                          │ │ readSettings(settings.json)               │ │
+                          │ │ → resolveStorage(settings)                │ │
+                          │ │ → storageHolder.current (hot-swappable)   │ │
+                          │ └───────────────────────────────────────────┘ │
+                          │                                                │
+                          │ IPC handlers:                                  │
+                          │  notes:list|get|create|update|delete           │
+                          │  settings:getNotesDir|pickNotesDir|            │
+                          │           setNotesDir|openNotesDir             │
+                          └────────────┬─────────────────────────┬────────┘
+                                       │                          │
+                                       ▼                          ▼
+                          <userData>/settings.json          <notesDir>/*.md
+                          (notesDir, schemaVersion)         (frontmatter YAML)
 ```
 
-Les canaux IPC exposés (`main.js`) :
+### Canaux IPC
+
+**`window.notes`** (CRUD notes) :
 
 | Canal | Payload | Retour |
 |---|---|---|
-| `notes:list` | — | `Note[]` |
+| `notes:list` | — | `Note[]` (invalidFiles logué côté main, à exposer au renderer en Sprint 4) |
 | `notes:get` | `id: string` | `Note \| null` |
 | `notes:create` | `{ title, content }` | `Note` |
 | `notes:update` | `id, { title?, content? }` | `Note \| null` |
 | `notes:delete` | `id: string` | `boolean` |
 
-### Emplacement des notes sur disque
+Si aucun `notesDir` n'est configuré, tous ces canaux **rejettent** avec `"Aucun dossier de notes configuré"` — l'UI bascule alors sur l'onboarding.
 
-Les notes sont écrites dans `<userData>/notes/`, où `<userData>` est fourni par `app.getPath("userData")` :
+**`window.settings`** (configuration) :
 
-- **Windows** : `%APPDATA%\prise-de-note\notes\`
-- **macOS** : `~/Library/Application Support/prise-de-note/notes/`
-- **Linux** : `~/.config/prise-de-note/notes/`
+| Canal | Payload | Retour |
+|---|---|---|
+| `settings:getNotesDir` | — | `string \| null` |
+| `settings:pickNotesDir` | — | `{ canceled: true } \| { canceled: false, path }` |
+| `settings:setNotesDir` | `{ path }` | `{ notesDir }` (valide, swap, persiste, émet event) |
+| `settings:openNotesDir` | — | `{ ok: true } \| { ok: false, error }` |
 
-Chaque note est un fichier `<slug-du-titre>-<id>.md` de la forme :
+**Event main → renderer** : `notes-dir-changed` (émis après un `setNotesDir` réussi, payload `{ notesDir }`).
+
+### Emplacement des fichiers sur disque
+
+**`settings.json`** dans le dossier fourni par `app.getPath("userData")` :
+
+- **Windows** : `%APPDATA%\prise-de-note\settings.json`
+- **macOS** : `~/Library/Application Support/prise-de-note/settings.json`
+- **Linux** : `~/.config/prise-de-note/settings.json`
+
+Format :
+
+```json
+{
+  "schemaVersion": 1,
+  "notesDir": "C:\\Users\\alice\\OneDrive\\Notes"
+}
+```
+
+**Notes** dans le dossier choisi par l'utilisateur, un fichier `<slug-du-titre>-<id>.md` de la forme :
 
 ```markdown
 ---
@@ -125,33 +204,35 @@ Contenu de la note en Markdown.
 - `nodeIntegration: false`
 - `sandbox: false` ← **ne pas changer** sans précaution (voir ci-dessous)
 - `preload: preload.js`
+- `minWidth: 640` / `minHeight: 480` pour préserver le layout sidebar + éditeur
 
 ### Pourquoi `sandbox: false`
 
-Le preload est chargé en ES module parce que `package.json` déclare `"type": "module"`. Electron n'autorise l'ESM dans le preload **que si le sandbox est désactivé**. Réactiver `sandbox: true` fait silencieusement échouer l'import du preload → `window.notes` devient `undefined` → toutes les actions UI plantent sans erreur visible.
+Le preload est chargé en ES module parce que `package.json` déclare `"type": "module"`. Electron n'autorise l'ESM dans le preload **que si le sandbox est désactivé**. Réactiver `sandbox: true` fait silencieusement échouer l'import du preload → `window.notes` / `window.settings` deviennent `undefined` → toutes les actions UI plantent sans erreur visible.
 
 Si la sécurité renforcée est requise plus tard, deux options :
 1. Passer le preload en CommonJS (retirer les `import`, renommer ou adapter).
-2. Conserver le sandbox désactivé mais ne rien exécuter de sensible dans le preload.
+2. Conserver le sandbox désactivé mais ne rien exécuter de sensible dans le preload (c'est le cas aujourd'hui : juste de l'IPC).
+
+### Défense en profondeur
+
+- Le payload IPC est sanitisé dans `main.js` avant d'atteindre la couche stockage (`sanitizeString`, `sanitizeId`, `sanitizePayload`, `sanitizePatch`) — neutralise les objets exotiques envoyés depuis le renderer.
+- Le renderer utilise **exclusivement `textContent`** (jamais `innerHTML`) pour afficher du contenu utilisateur — anti-XSS.
+- Les icônes SVG sont injectées via `innerHTML` uniquement depuis des chaînes statiques contrôlées (`window.AppIcons.*`), jamais depuis une entrée utilisateur.
 
 ## Conventions
 
-- Le code est en **ESM** (`import`/`export`) partout — y compris preload et tests.
-- Pas de framework UI : le renderer manipule le DOM directement dans une IIFE.
-- `lib/notes-storage.js` est **pur** (prend `notesDir` en paramètre), ce qui facilite les tests sans Electron.
-- Tests qui touchent le disque : utiliser `fs.mkdtemp` + cleanup dans `afterEach`, jamais de chemin en dur.
+- **ESM** partout (`import`/`export`), y compris preload et tests.
+- Pas de framework UI : manipulation DOM directe dans une IIFE.
+- **Pas de factory** quand la closure n'évite pas de répétition côté appelant (cf. `lib/settings.js` = fonctions pures vs `lib/notes-storage.js` = factory justifiée).
+- CSS **toujours** dans un fichier séparé : jamais de `<style>` inline, jamais de `style=` dans le HTML. Tokens CSS centralisés dans `vue/style/tokens.css`.
+- Icônes : une seule source (`vue/script/icons.js`). On ajoute une icône uniquement quand un ticket la consomme.
+- Tests qui touchent le disque : `fs.mkdtemp` + cleanup dans `afterEach`, jamais de chemin en dur.
+- Ids DOM utilisés par les tests (`#notes-list`, `#detail-title`, `#onboarding`, `#settings-panel`, etc.) : préserver la stabilité, tout changement doit mettre à jour `tests/notes-ui.test.js`.
 
-## Roadmap (Sprint 1 restant)
+## Dette connue
 
-D'après le backlog, à faire côté UI/renderer :
-
-- [ ] S1-T08 — écran détail + édition
-- [ ] S1-T10 — suppression avec confirmation
-- [ ] S1-T11 — recherche texte (titre + contenu)
-- [ ] S1-T12 — autosave avec debounce (~700 ms)
-- [ ] S1-T13 — gestion d'erreurs UI (toast/alerte)
-- [ ] S1-T14 — état vide + onboarding minimal
-- [ ] S1-T15 — recette manuelle MVP
+- **Flake test frontmatter** : `tests/notes-storage.test.js` → `"le frontmatter contient les métadonnées attendues"` peut échouer ~1/1000 quand l'id aléatoire (hex 10 chars) ne contient que des chiffres. YAML quote alors la valeur et l'assertion `toContain(\`id: ${id}\`)` rate. Fix trivial : assouplir l'assertion en regex ou garantir une lettre `a-f` dans l'id.
 
 ## Licence
 

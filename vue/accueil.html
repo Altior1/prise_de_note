@@ -4,28 +4,128 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Accueil</title>
+        <link rel="stylesheet" href="style/accueil.css" />
     </head>
     <body>
-        <h1>Bienvenue sur l'application de prise de note</h1>
-        <p>
-            Cette application vous permettra de prendre des notes rapidement et
-            facilement.
-        </p>
+        <!-- Onboarding : affiché tant qu'aucun notesDir n'est configuré.
+             Placé avant #app-main pour recouvrir l'app tant que l'utilisateur
+             n'a pas choisi. -->
+        <section id="onboarding" class="onboarding" hidden>
+            <h1 class="onboarding-title">Bienvenue</h1>
+            <p class="onboarding-lead">
+                Choisissez un dossier où l'application enregistrera vos notes.
+                Vous pourrez le changer plus tard depuis la sidebar.
+            </p>
+            <button type="button" id="onboarding-pick" class="onboarding-button">
+                Choisir un dossier
+            </button>
+            <p class="onboarding-hint">
+                Astuce : un dossier synchronisé (OneDrive, Dropbox, iCloud) vous permet
+                de retrouver vos notes depuis plusieurs machines.
+            </p>
+            <div id="onboarding-error" class="onboarding-error" hidden></div>
+        </section>
 
-        <h2>Créer une nouvelle note</h2>
-        <form id="note-form">
-            <label for="note-title">Titre :</label>
-            <input type="text" id="note-title" name="note-title" required />
-            <br />
-            <label for="note-content">Contenu :</label>
-            <textarea id="note-content" name="note-content" required></textarea>
-            <br />
-            <button type="submit">Créer la note</button>
-        </form>
+        <!-- App principale : conteneur flex sidebar + panneau éditeur. -->
+        <section id="app-main" hidden>
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-search">
+                    <label for="notes-search" class="visually-hidden">Rechercher</label>
+                    <input
+                        type="search"
+                        id="notes-search"
+                        placeholder="Rechercher…"
+                        autocomplete="off"
+                    />
+                </div>
 
-        <h2>Liste des notes</h2>
-        <ul id="notes-list"></ul>
+                <nav class="sidebar-list" aria-label="Liste des notes">
+                    <ul id="notes-list"></ul>
+                    <!-- Affiché uniquement si une recherche ne retourne aucun résultat -->
+                    <div id="search-empty" hidden>
+                        Aucune note ne correspond à la recherche.
+                    </div>
+                    <!-- Affiché uniquement si aucune note n'existe (base vide) -->
+                    <div id="empty-state" hidden>
+                        <span class="arrow">&#8593;</span>
+                        Aucune note pour le moment.
+                    </div>
+                </nav>
 
+                <div class="sidebar-actions">
+                    <!-- Bouton + câblé en T09 : crée une note vide sélectionnée.
+                         Les paramètres sont affichés en permanence en bas de sidebar
+                         (bloc #settings-panel plus bas), pas d'engrenage séparé. -->
+                    <button
+                        type="button"
+                        id="sidebar-create"
+                        class="icon-button"
+                        aria-label="Nouvelle note"
+                    ></button>
+                </div>
+
+                <!-- Paramètres du dossier de notes : toujours visibles en
+                     bas de sidebar, style compact adapté à la largeur 280px. -->
+                <section id="settings-panel" class="sidebar-settings" hidden>
+                    <code id="settings-notes-dir" class="sidebar-settings-path"></code>
+                    <div class="sidebar-settings-actions">
+                        <button type="button" id="settings-change">Changer…</button>
+                        <button type="button" id="settings-open">Ouvrir</button>
+                    </div>
+                </section>
+            </aside>
+
+            <section id="editor-panel" class="editor-panel">
+                <!-- Placeholder tant qu'aucune note n'est sélectionnée -->
+                <div id="detail-placeholder">
+                    Sélectionnez une note dans la liste pour la modifier.
+                </div>
+                <!-- Panneau d'édition : révélé au clic sur une note de la liste -->
+                <div id="note-detail" hidden>
+                    <!-- Bouton supprimer isolé en coin haut droit via position absolue (cf. CSS) -->
+                    <button
+                        type="button"
+                        id="detail-delete"
+                        class="detail-delete-button"
+                        aria-label="Supprimer cette note"
+                    ></button>
+
+                    <input
+                        type="text"
+                        id="detail-title"
+                        class="detail-title-input"
+                    />
+                    <textarea
+                        id="detail-content"
+                        class="detail-content-input"
+                    ></textarea>
+                    <!-- aria-live=polite : les lecteurs d'écran annoncent le statut
+                         (Enregistrement… / Enregistré HH:MM) sans interrompre -->
+                    <div
+                        id="save-indicator"
+                        class="save-indicator"
+                        aria-live="polite"
+                    ></div>
+                    <!-- .detail-actions contient désormais uniquement le bouton save (hidden).
+                         Il reste dans le DOM pour les tests existants mais n'a plus de contenu
+                         visible — à simplifier/supprimer en Sprint 4 si ça devient intéressant. -->
+                    <div class="detail-actions">
+                        <button type="button" id="detail-save" hidden>
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+        </section>
+
+        <!-- Conteneur des toasts d'erreur (position fixe, géré en CSS).
+             Hors de #app-main pour rester visible même pendant l'onboarding. -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+        <!-- Ordre critique : icons.js pose window.AppIcons avant que notes-ui.js
+             ne l'utilise pour rendre les icônes du chrome. -->
+        <script src="script/icons.js"></script>
         <script src="script/notes-ui.js"></script>
     </body>
 </html>

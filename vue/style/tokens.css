@@ -1,0 +1,48 @@
+/* Tokens de design : palette, espacement, typographie, rayons.
+   Tous les autres CSS doivent consommer ces variables plutôt que des
+   valeurs hex/px en dur. Préparés pour accueillir un data-theme="dark"
+   en Sprint 5 — un second bloc :root[data-theme="dark"] surchargera les
+   couleurs sans toucher aux consommateurs. */
+
+:root {
+    /* Couleurs neutres */
+    --color-bg: #ffffff;
+    --color-surface: #f7f8fa;          /* sidebar, cartes */
+    --color-surface-hover: #eef0f4;    /* hover sur items de liste */
+    --color-surface-selected: #e1e8f5; /* note sélectionnée */
+    --color-border: #e3e5e8;
+    --color-border-strong: #c6c9ce;
+
+    /* Couleurs de texte */
+    --color-text: #2e3338;
+    --color-text-muted: #6b7280;
+    --color-text-inverse: #ffffff;
+
+    /* Accents */
+    --color-accent: #5b82eb;        /* boutons primaires, focus */
+    --color-accent-hover: #4a6fd6;
+    --color-danger: #c0392b;        /* suppression */
+    --color-danger-soft: #fce8e6;   /* fond hover/alert doux */
+    --color-warning: #8a6d00;       /* état "en cours" (ex: autosave saving) */
+    --color-success: #2d7a2d;       /* état "OK" (ex: autosave saved) */
+
+    /* Espacement */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+
+    /* Typographie */
+    --font-family-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-size-sm: 0.8125rem;   /* 13px */
+    --font-size-base: 0.875rem;  /* 14px — densité Obsidian-like */
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+
+    /* Rayons */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+}
