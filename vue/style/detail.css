@@ -58,6 +58,34 @@
     height: 16px;
 }
 
+.detail-toggle-view-button {
+    position: absolute;
+    top: 0;
+    right: calc(32px + var(--spacing-sm));
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-toggle-view-button:hover {
+    color: var(--color-accent);
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
+}
+
+.detail-toggle-view-button svg {
+    width: 16px;
+    height: 16px;
+}
+
 #note-detail[hidden] {
     display: none;
 }

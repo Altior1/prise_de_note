@@ -30,6 +30,8 @@
   const detailContent = document.getElementById("detail-content");
   const detailSaveBtn = document.getElementById("detail-save");
   const detailDeleteBtn = document.getElementById("detail-delete");
+  const detailToggleViewBtn = document.getElementById("detail-toggle-view");
+  const detailPreview = document.getElementById("detail-preview");
   const saveIndicator = document.getElementById("save-indicator");
   const toastContainer = document.getElementById("toast-container");
 
@@ -48,6 +50,7 @@
   let autosaveTimer = null;
   let autosaveTargetId = null;
   let inFlightWrites = 0;
+  let viewMode = "edit";
 
   function beginWrite() {
     inFlightWrites += 1;
@@ -235,13 +238,54 @@
     const note = notesCache.find((n) => n.id === id);
     if (!note) {
       selectedId = null;
+      resetViewMode();
       renderDetail(null);
       highlightSelected();
       return;
     }
     selectedId = id;
+    resetViewMode();
     renderDetail(note);
     highlightSelected();
+  }
+
+  // Reset systématique au changement de note : revenir en édition évite
+  // qu'on reste bloqué sur un aperçu rendu à partir du contenu d'une autre
+  // note pendant la fraction de seconde avant le prochain toggle.
+  function resetViewMode() {
+    viewMode = "edit";
+    if (detailPanel) detailPanel.classList.remove("mode-preview");
+    updateToggleViewButton();
+  }
+
+  function updateToggleViewButton() {
+    if (!detailToggleViewBtn) return;
+    if (!window.AppIcons || !window.AppIcons.renderIcon) return;
+    const isPreview = viewMode === "preview";
+    const icon = isPreview ? window.AppIcons.pencilIcon : window.AppIcons.eyeIcon;
+    window.AppIcons.renderIcon(detailToggleViewBtn, icon);
+    detailToggleViewBtn.setAttribute(
+      "aria-label",
+      isPreview ? "Revenir à l'édition" : "Afficher l'aperçu",
+    );
+  }
+
+  function decorateDetailToggleView() {
+    if (!detailToggleViewBtn) return;
+    updateToggleViewButton();
+    detailToggleViewBtn.addEventListener("click", () => {
+      viewMode = viewMode === "edit" ? "preview" : "edit";
+      if (detailPanel) detailPanel.classList.toggle("mode-preview", viewMode === "preview");
+      if (viewMode === "preview" && detailPreview && detailContent) {
+        // renderMarkdown retourne du HTML déjà sanitisé par DOMPurify
+        // (cf. markdown.js) — innerHTML est sûr ici.
+        const html = window.AppMarkdown && window.AppMarkdown.renderMarkdown
+          ? window.AppMarkdown.renderMarkdown(detailContent.value)
+          : "";
+        detailPreview.innerHTML = html;
+      }
+      updateToggleViewButton();
+    });
   }
 
   function renderList() {
@@ -595,6 +639,7 @@
     setupSettingsPanel();
     decorateSettingsOpen();
     decorateDetailDelete();
+    decorateDetailToggleView();
     setupDetailActions();
     setupSearch();
     setupSidebarCreate();
