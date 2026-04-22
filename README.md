@@ -12,9 +12,9 @@ Interface inspirée d'Obsidian : sidebar de navigation à gauche, éditeur plein
 | Sprint 2 | Dossier de notes configurable (onboarding, hot-swap, settings.json) — J1 à J3 | Livré (J4/J5 reportés Sprint 4) |
 | Sprint 3 | Refonte UX/UI Obsidian-like — J1 à J4 | En cours (J5/J6 à faire) |
 | Sprint 4 | Reprise S2-J4 (`.md` externes) + S2-J5 (modale migration) sur la nouvelle UI | À planifier |
-| Sprint 5 (envisagé) | Thème sombre, raccourcis clavier, export/tags | Non démarré |
+| Sprint 5 | Rendu Markdown (markdown-it + DOMPurify) + thème sombre (toggle via tokens CSS) | À démarrer |
 
-Backlogs détaillés : [`docs/sprint-1.md`](docs/sprint-1.md), [`docs/sprint-2.md`](docs/sprint-2.md), [`docs/sprint-3.md`](docs/sprint-3.md).
+Backlogs détaillés : [`docs/sprint-1.md`](docs/sprint-1.md), [`docs/sprint-2.md`](docs/sprint-2.md), [`docs/sprint-3.md`](docs/sprint-3.md), [`docs/sprint-4.md`](docs/sprint-4.md), [`docs/sprint-5.md`](docs/sprint-5.md).
 
 ## Fonctionnalités livrées
 
