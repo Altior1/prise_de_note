@@ -123,9 +123,17 @@
              Hors de #app-main pour rester visible même pendant l'onboarding. -->
         <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-        <!-- Ordre critique : icons.js pose window.AppIcons avant que notes-ui.js
-             ne l'utilise pour rendre les icônes du chrome. -->
+        <!-- Ordre critique :
+             - icons.js pose window.AppIcons,
+             - markdown-it + DOMPurify (bundles UMD npm) posent window.markdownit
+               et window.DOMPurify,
+             - markdown.js consomme ces deux libs pour exposer window.AppMarkdown,
+             - notes-ui.js utilise AppIcons (et AppMarkdown en S5-T06).
+             Tous chargés en script classique (pas de module ESM côté renderer). -->
+        <script src="../node_modules/markdown-it/dist/markdown-it.min.js"></script>
+        <script src="../node_modules/dompurify/dist/purify.min.js"></script>
         <script src="script/icons.js"></script>
+        <script src="script/markdown.js"></script>
         <script src="script/notes-ui.js"></script>
     </body>
 </html>
