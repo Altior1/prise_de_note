@@ -1,0 +1,133 @@
+/* Styles Markdown "Obsidian-like" pour la zone de preview.
+   Toutes les règles sont scopées sous `.detail-preview` afin de ne pas
+   fuiter sur le reste de l'app (onboarding, sidebar, etc.).
+   Les couleurs passent systématiquement par les tokens (--color-*). */
+
+/* --- Titres -------------------------------------------------------------- */
+/* Hiérarchie visuelle décroissante. h1/h2 portent une bordure basse façon
+   Obsidian ; h3 reste nu pour garder une respiration. */
+.detail-preview h1,
+.detail-preview h2,
+.detail-preview h3 {
+    margin: var(--spacing-xl) 0 var(--spacing-md);
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--color-text);
+}
+
+.detail-preview h1 {
+    font-size: 1.75rem;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.detail-preview h2 {
+    font-size: 1.4rem;
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.detail-preview h3 {
+    font-size: 1.15rem;
+}
+
+/* Premier titre collé en haut : pas de marge supérieure superflue. */
+.detail-preview > h1:first-child,
+.detail-preview > h2:first-child,
+.detail-preview > h3:first-child {
+    margin-top: 0;
+}
+
+/* --- Paragraphes --------------------------------------------------------- */
+.detail-preview p {
+    margin: var(--spacing-md) 0;
+    line-height: 1.6;
+}
+
+/* --- Listes -------------------------------------------------------------- */
+.detail-preview ul,
+.detail-preview ol {
+    margin: var(--spacing-md) 0;
+    padding-left: var(--spacing-xl);
+}
+
+.detail-preview ul {
+    list-style: disc;
+}
+
+.detail-preview ol {
+    list-style: decimal;
+}
+
+.detail-preview li {
+    margin: var(--spacing-xs) 0;
+    line-height: 1.6;
+}
+
+.detail-preview li > ul,
+.detail-preview li > ol {
+    margin: var(--spacing-xs) 0;
+}
+
+/* --- Citations ----------------------------------------------------------- */
+.detail-preview blockquote {
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.detail-preview blockquote p {
+    margin: var(--spacing-xs) 0;
+}
+
+/* --- Code ---------------------------------------------------------------- */
+/* Police mono système : même rendu sur Windows/macOS/Linux sans embarquer
+   de fonte. Fond subtil pour se démarquer du texte courant. */
+.detail-preview code {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+}
+
+/* Bloc de code : le scroll horizontal est porté par <pre>, pas par <code>,
+   sinon le padding du code serait tronqué par l'overflow. */
+.detail-preview pre {
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-lg);
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+}
+
+.detail-preview pre > code {
+    display: block;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    white-space: pre;
+}
+
+/* --- Liens --------------------------------------------------------------- */
+.detail-preview a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.detail-preview a:hover {
+    text-decoration: underline;
+}
+
+/* --- Séparateur ---------------------------------------------------------- */
+.detail-preview hr {
+    margin: var(--spacing-xl) 0;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+}

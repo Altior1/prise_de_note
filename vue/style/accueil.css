@@ -1,6 +1,7 @@
 @import url("tokens.css");
 @import url("sidebar.css");
 @import url("detail.css");
+@import url("markdown.css");
 
 /* Feuille de style "glue" : styles globaux (body, app-main), toasts,
    onboarding, paramètres (temporaires). Sidebar et détail sont isolés
