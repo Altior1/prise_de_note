@@ -104,14 +104,20 @@
                         id="detail-title"
                         class="detail-title-input"
                     />
-                    <textarea
-                        id="detail-content"
-                        class="detail-content-input"
-                    ></textarea>
-                    <!-- Conteneur d'aperçu Markdown : vide par défaut, peuplé
-                         par renderMarkdown en S5-T06. Masqué tant que
-                         #note-detail n'a pas la classe .mode-preview (cf. CSS). -->
-                    <article id="detail-preview" class="detail-preview"></article>
+                    <!-- Stack edit/preview : wrapper en position relative qui
+                         superpose textarea et article sur la même zone, pour
+                         permettre une transition opacity entre les deux modes
+                         sans layout shift (S5-T08). -->
+                    <div class="detail-editor-stack">
+                        <textarea
+                            id="detail-content"
+                            class="detail-content-input"
+                        ></textarea>
+                        <!-- Conteneur d'aperçu Markdown : vide par défaut, peuplé
+                             par renderMarkdown en S5-T06. Masqué tant que
+                             #note-detail n'a pas la classe .mode-preview (cf. CSS). -->
+                        <article id="detail-preview" class="detail-preview"></article>
+                    </div>
                     <!-- aria-live=polite : les lecteurs d'écran annoncent le statut
                          (Enregistrement… / Enregistré HH:MM) sans interrompre -->
                     <div
