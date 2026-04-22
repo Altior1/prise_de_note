@@ -82,6 +82,15 @@
                 </div>
                 <!-- Panneau d'édition : révélé au clic sur une note de la liste -->
                 <div id="note-detail" hidden>
+                    <!-- Bouton toggle edit/preview : coin haut droit, à côté de
+                         #detail-delete. Icône + aria-label pilotés par notes-ui.js
+                         en S5-T06 (état initial = mode edit → eyeIcon). -->
+                    <button
+                        type="button"
+                        id="detail-toggle-view"
+                        class="detail-toggle-view-button"
+                        aria-label="Afficher l'aperçu"
+                    ></button>
                     <!-- Bouton supprimer isolé en coin haut droit via position absolue (cf. CSS) -->
                     <button
                         type="button"
