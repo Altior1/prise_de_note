@@ -108,6 +108,10 @@
                         id="detail-content"
                         class="detail-content-input"
                     ></textarea>
+                    <!-- Conteneur d'aperçu Markdown : vide par défaut, peuplé
+                         par renderMarkdown en S5-T06. Masqué tant que
+                         #note-detail n'a pas la classe .mode-preview (cf. CSS). -->
+                    <article id="detail-preview" class="detail-preview"></article>
                     <!-- aria-live=polite : les lecteurs d'écran annoncent le statut
                          (Enregistrement… / Enregistré HH:MM) sans interrompre -->
                     <div

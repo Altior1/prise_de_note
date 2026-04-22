@@ -94,6 +94,31 @@
     line-height: 1.6;
 }
 
+/* Aperçu Markdown : occupe la même zone que le textarea.
+   Masqué par défaut ; rendu visible quand #note-detail porte .mode-preview
+   (classe posée dynamiquement par notes-ui.js en S5-T06).
+   Les styles internes (titres, listes, code…) sont à part dans markdown.css
+   (S5-T07). */
+.detail-preview {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+#note-detail.mode-preview .detail-content-input {
+    display: none;
+}
+
+#note-detail.mode-preview .detail-preview {
+    display: block;
+}
+
 .save-indicator {
     min-height: 1.1em;
     font-size: var(--font-size-sm);
