@@ -47,8 +47,12 @@ function buildDom() {
           <section id="editor-panel">
             <div id="detail-placeholder"></div>
             <div id="note-detail" hidden>
+              <button type="button" id="detail-toggle-view" aria-label="Afficher l'aperçu"></button>
               <input type="text" id="detail-title" />
-              <textarea id="detail-content"></textarea>
+              <div class="detail-editor-stack">
+                <textarea id="detail-content"></textarea>
+                <article id="detail-preview" class="detail-preview"></article>
+              </div>
               <div id="save-indicator"></div>
               <div class="detail-actions">
                 <button type="button" id="detail-save" hidden>Enregistrer</button>
@@ -198,9 +202,17 @@ describe("notes-ui.js (intégration DOM)", () => {
       checkIcon: "<svg data-icon='check'></svg>",
       xIcon: "<svg data-icon='x'></svg>",
       documentPlusIcon: "<svg data-icon='document-plus'></svg>",
+      eyeIcon: "<svg data-icon='eye'></svg>",
+      pencilIcon: "<svg data-icon='pencil'></svg>",
       renderIcon: (container, svgString) => {
         if (container) container.innerHTML = svgString;
       },
+    };
+    // Stub minimaliste : on ne veut pas réimporter markdown-it + DOMPurify ici
+    // (couvert par tests/markdown.test.js). Le HTML produit reste identifiable
+    // pour vérifier que la preview a bien été peuplée à partir du textarea.
+    window.AppMarkdown = {
+      renderMarkdown: (src) => `<article class="stub">${src}</article>`,
     };
     // Par défaut, un dossier configuré : les tests existants attendent que
     // l'app démarre directement, pas l'onboarding. Les tests d'onboarding
@@ -1015,8 +1027,6 @@ describe("notes-ui.js (intégration DOM)", () => {
       const initialListCalls = notesMock.list.mock.calls.length;
       expect(notesDirChangedCb).toBeTruthy();
 
-      // Simule un nouveau dossier côté "main" : getNotesDir renverra D:\\new
-      // au prochain appel, et notesDirChangedCb déclenche le re-fetch.
       settingsMock.getNotesDir.mockResolvedValueOnce("D:\\new");
 
       await notesDirChangedCb({ notesDir: "D:\\new" });
@@ -1028,4 +1038,134 @@ describe("notes-ui.js (intégration DOM)", () => {
       expect(settingsPath.textContent).toBe("D:\\new");
     });
   });
+
+  describe("Toggle Edit/Preview", () => {
+    test("clic sur #detail-toggle-view passe en mode preview et peuple #detail-preview", async () => {
+      installNotesMock([
+        {
+          id: "note-1",
+          title: "Titre",
+          content: "# Bonjour",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+      runScript();
+      await flush();
+
+      const notesList = document.getElementById("notes-list");
+      notesList.querySelector("li").dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+
+      const detailPanel = document.getElementById("note-detail");
+      const detailContent = document.getElementById("detail-content");
+      const detailPreview = document.getElementById("detail-preview");
+      const toggleBtn = document.getElementById("detail-toggle-view");
+
+      // Le contenu affiché dans la preview doit venir du textarea, pas du
+      // cache — c'est ce qui permet d'avoir la prévisualisation des frappes
+      // non encore sauvegardées.
+      detailContent.value = "# Modifié en direct";
+
+      expect(detailPanel.classList.contains("mode-preview")).toBe(false);
+
+      toggleBtn.dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+
+      expect(detailPanel.classList.contains("mode-preview")).toBe(true);
+      expect(detailPreview.innerHTML).toContain("# Modifié en direct");
+      expect(detailPreview.innerHTML).toContain('class="stub"');
+    });
+
+    test("second clic retire la classe .mode-preview (retour en édition)", async () => {
+      installNotesMock([
+        {
+          id: "note-1",
+          title: "Titre",
+          content: "# H1",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+      runScript();
+      await flush();
+
+      const notesList = document.getElementById("notes-list");
+      notesList.querySelector("li").dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+
+      const detailPanel = document.getElementById("note-detail");
+      const detailPreview = document.getElementById("detail-preview");
+      const toggleBtn = document.getElementById("detail-toggle-view");
+
+      toggleBtn.dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+      expect(detailPanel.classList.contains("mode-preview")).toBe(true);
+      const populatedHtml = detailPreview.innerHTML;
+      expect(populatedHtml.length).toBeGreaterThan(0);
+
+      toggleBtn.dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+
+      expect(detailPanel.classList.contains("mode-preview")).toBe(false);
+      // Le retour en édition ne réinitialise pas l'innerHTML de la preview :
+      // choix produit (masquage via CSS, pas reset du HTML).
+      expect(detailPreview.innerHTML).toBe(populatedHtml);
+    });
+
+    test("changer de note réinitialise le mode à édition (retrait de .mode-preview)", async () => {
+      installNotesMock([
+        {
+          id: "note-1",
+          title: "A",
+          content: "# A",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "note-2",
+          title: "B",
+          content: "# B",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+      runScript();
+      await flush();
+
+      const notesList = document.getElementById("notes-list");
+      const items = notesList.querySelectorAll("li");
+      items[0].dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+
+      const detailPanel = document.getElementById("note-detail");
+      const toggleBtn = document.getElementById("detail-toggle-view");
+
+      toggleBtn.dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+      expect(detailPanel.classList.contains("mode-preview")).toBe(true);
+
+      items[1].dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+      await flush();
+
+      expect(detailPanel.classList.contains("mode-preview")).toBe(false);
+    });
+  });
+
 });
